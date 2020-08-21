@@ -13,9 +13,11 @@ const uri = "mongodb+srv://admin:jDrsgl9svkYVq0hd@cluster0.xtcre.mongodb.net/icr
 
 mongoose.connect(uri, {useNewUrlParser: true})
 
-app.listen(8000, (req,res)=>{
-    console.log("Server is running on port 8000")
-})
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8000;
+}
+app.listen(port);
 
 app.get('/', (req, res) => res.sendFile(__dirname + '/frontend/login.html'))
 app.get('/create-user/', (req, res) => res.sendFile(__dirname + '/frontend/index.html'))
