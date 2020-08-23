@@ -50,41 +50,39 @@ const UserSchema = new mongoose.Schema(
 
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
-  var user = this;
+  var user = this
   // Password cannot be validated in the db as it is being hashed.
   if (user.password < 8) {
     throw new Error('Password is too short.')
   }
   bcrypt.hash(user.password, 10, (err, hash) => {
     if (err) {
-      return next(err);
+      return next(err)
     }
-    user.password = hash;
-    next();
+    user.password = hash
+    next()
   })
-});
+})
 
 // Retrieve the user
 UserSchema.statics.authenticate = (email, password, callback) => {
-  User.findOne({ emailaddress: email }).exec((err, user) => {
-      if (err) {
-        return callback(err)
+  User.findOne({emailaddress: email}).exec((err, user) => {
+    if (err) {
+      return callback(err)
+    }
+    if (!user) {
+      var err = new Error('User does not exist.')
+      err.status = 401;
+      return callback(err)
+    }
+    bcrypt.compare(password, user.password, (err, result) => {
+      if (result === true) {
+        return callback(null, user)
+      } else {
+        return callback(new Error('Password was incorrect.'))
       }
-
-      if (!user) {
-        var err = new Error('User does not exist.');
-        err.status = 401;
-        return callback(err);
-      }
-
-      bcrypt.compare(password, user.password, (err, result) => {
-        if (result === true) {
-          return callback(null, user);
-        } else {
-          return callback();
-        }
-      })
-    });
+    })
+  })
 }
 
 const User = mongoose.model("User", UserSchema)  // This allows me to use User in authenticate method.

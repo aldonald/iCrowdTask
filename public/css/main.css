@@ -27,3 +27,14 @@ form {
 .button-row {
   margin-top: auto;
 }
+
+.login-container {
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.container .row {
+  display: flex;
+  justify-content: center;
+}

@@ -12,7 +12,9 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "mongoose": "^5.10.0",
+    "multiparty": "^4.2.2",
     "validator": "^13.1.1"
   }
 }

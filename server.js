@@ -3,11 +3,24 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const https = require('https')
 const validator = require('validator')
+const multiparty = require('multiparty')
+const session = require('express-session')
 const User = require('./models/user')
 
 const app = express()
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.static('public'))
+
+// Attach session allowing for different security in local to production.
+const sess_attr = {
+  secret: 'sit313',
+  cookie: {}
+}
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1) // trust first proxy
+  sess_attr.cookie.secure = true // serve secure cookies
+}
+app.use(session(sess_attr))
 
 const uri = "mongodb+srv://admin:jDrsgl9svkYVq0hd@cluster0.xtcre.mongodb.net/icrowdtask?retryWrites=true&w=majority"
 
@@ -19,11 +32,33 @@ if (port == null || port == "") {
 }
 app.listen(port);
 
-app.get('/', (req, res) => res.sendFile(__dirname + '/frontend/login.html'))
-app.get('/create-user/', (req, res) => res.sendFile(__dirname + '/frontend/index.html'))
+app.get('/', (req, res) => {
+  if (req.session.userId) {
+    res.sendFile(__dirname + '/frontend/reqtask.html')
+  } else {
+    res.sendFile(__dirname + '/frontend/reqlogin.html')
+  }
+})
+app.get('/reqsignup/', (req, res) => res.sendFile(__dirname + '/frontend/reqsignup.html'))
 
-app.post('/create-user/', (req, res, next) => {
-  console.log(req.body)
+app.get('/reqtask/', (req, res, next) => {
+  User.findById(req.session.userId)
+    .exec(function (error, user) {
+      if (error) {
+        return next(error)
+      } else {
+        if (!user) {
+          var err = new Error('Please sign in.')
+          err.status = 400
+          return next(err)
+        } else {
+          return res.send(`<h2 class="mt-5">Welcome ${user.firstname}!!</h2><p class="mt-2" style="align-self: center;">You have logged in successfully</p>`)
+        }
+      }
+    })
+})
+
+app.post('/reqsignup/', (req, res, next) => {
   const country = req.body.country
   const firstname = req.body.firstname
   const lastname = req.body.lastname
@@ -96,23 +131,30 @@ app.post('/create-user/', (req, res, next) => {
       mobile: mobile
     }
 
-    res.sendFile(__dirname + '/frontend/400.html', { errorMsg: err, original: original_values, title: "Login error" })
+    res.sendFile(__dirname + '/frontend/400.html')
   }
 })
 
-app.post('/login/', (req, res, next) => {
-  const email = req.body.email
-  const password = req.body.password
+app.post('/reqlogin/', (req, res, next) => {
+  let email = ''
+  let password = ''
 
-  // Authenticate email for login
-  User.authenticate(email, password, (error, user) => {
-    console.log(user)
-    if (error) {
-      var err = new Error('Wrong email or password.')
-      err.status = 401;
-      return next(err);
-    } else {
-      return res.sendFile(__dirname + '/frontend/details.html')
-    }
+  let form = new multiparty.Form()
+  form.parse(req)
+  form.parse(req, function(err, fields, files) {
+    email = fields.email[0]
+    password = fields.password[0]
+
+    // Authenticate email for login
+    User.authenticate(email, password, (error, user) => {
+      if (error) {
+        var err = new Error('Wrong email or password.')
+        err.status = 401;
+        return next(err);
+      } else {
+        req.session.userId = user.id;
+        return res.redirect('/reqtask/')
+      }
+    })
   })
 })
