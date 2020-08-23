@@ -34,7 +34,7 @@ app.listen(port);
 
 app.get('/', (req, res) => {
   if (req.session.userId) {
-    res.sendFile(__dirname + '/frontend/reqtask.html')
+    res.redirect('/reqtask/')
   } else {
     res.sendFile(__dirname + '/frontend/reqlogin.html')
   }
