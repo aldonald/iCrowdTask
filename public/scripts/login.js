@@ -34,7 +34,7 @@ loginForm.addEventListener('submit', ev => {
           const password = loginForm.password.value
           const email = loginForm.email.value
           var cred = new PasswordCredential({
-            id: 'email',
+            id: email,
             password: password,
             email: email,
             iconURL: window.location.href
