@@ -53,7 +53,7 @@ loginForm.addEventListener('submit', ev => {
   }
 
   // Set up our request
-  XHR.open('POST', '/login/')
+  XHR.open('POST', '/reqlogin/')
 
   // Send our FormData object. HTTP headers are set automatically
   XHR.send(FD)
