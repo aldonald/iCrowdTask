@@ -6,6 +6,9 @@ const validator = require('validator')
 const multiparty = require('multiparty')
 const session = require('express-session')
 const User = require('./models/user')
+const sendEmail = require('./public/scripts/email')
+
+require('dotenv').config()
 
 const app = express()
 app.use(bodyParser.urlencoded({extended: true}))
@@ -114,6 +117,7 @@ app.post('/reqsignup/', (req, res, next) => {
         console.log(err)
         // return next(err)
       } else {
+        sendEmail(user.emailaddress, user.firstname, user.lastname, user.country)
         return res.redirect('/')
       }
     })

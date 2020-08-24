@@ -10,11 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/client": "^7.2.4",
+    "@sendgrid/mail": "^7.2.4",
     "bcrypt": "^5.0.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "mongoose": "^5.10.0",
     "multiparty": "^4.2.2",
+    "sendgrid": "^5.2.3",
     "validator": "^13.1.1"
   }
 }
