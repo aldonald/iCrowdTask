@@ -44,11 +44,11 @@ const sendEmail = (email, firstname, lastname, country) => {
       }
     ],
     from: {
-      email: 'donaldal@deakin.edu.au',
+      email: 'team@icrowdtask.works',
       name: 'iCrowdTask Team'
     },
     reply_to: {
-      email: 'donaldal@deakin.edu.au',
+      email: 'team@icrowdtask.works',
       name: 'iCrowdTask Team'
     },
     template_id: 'd-135d94ab55f5421f94b8acad91f63115'

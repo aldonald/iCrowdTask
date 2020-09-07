@@ -17,6 +17,8 @@
     "express-session": "^1.17.1",
     "mongoose": "^5.10.0",
     "multiparty": "^4.2.2",
+    "passport": "^0.4.1",
+    "passport-google-oauth": "^2.0.0",
     "sendgrid": "^5.2.3",
     "validator": "^13.1.1"
   }

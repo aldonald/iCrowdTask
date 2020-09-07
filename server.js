@@ -6,11 +6,14 @@ const validator = require('validator')
 const multiparty = require('multiparty')
 const session = require('express-session')
 const User = require('./models/user')
+const Worker = require('./models/worker')
 const sendEmail = require('./public/scripts/email')
+const bcrypt = require('bcrypt')
 
 require('dotenv').config()
 
 const app = express()
+app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.static('public'))
 
@@ -42,26 +45,10 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/frontend/reqlogin.html')
   }
 })
-app.get('/reqsignup/', (req, res) => res.sendFile(__dirname + '/frontend/reqsignup.html'))
 
-app.get('/reqtask/', (req, res, next) => {
-  User.findById(req.session.userId)
-    .exec(function (error, user) {
-      if (error) {
-        return next(error)
-      } else {
-        if (!user) {
-          var err = new Error('Please sign in.')
-          err.status = 400
-          return next(err)
-        } else {
-          return res.send(`<h2 class="mt-5">Welcome ${user.firstname}!!</h2><p class="mt-2" style="align-self: center;">You have logged in successfully</p>`)
-        }
-      }
-    })
-})
-
-app.post('/reqsignup/', (req, res, next) => {
+app.route('/reqsignup/')
+.get((req, res) => res.sendFile(__dirname + '/frontend/reqsignup.html'))
+.post((req, res, next) => {
   const country = req.body.country
   const firstname = req.body.firstname
   const lastname = req.body.lastname
@@ -139,6 +126,24 @@ app.post('/reqsignup/', (req, res, next) => {
   }
 })
 
+app.get('/reqtask/', (req, res, next) => {
+  debugger
+  User.findById(req.session.userId)
+    .exec(function (error, user) {
+      if (error) {
+        return next(error)
+      } else {
+        if (!user) {
+          var err = new Error('Please sign in.')
+          err.status = 400
+          return next(err)
+        } else {
+          return res.send(`<h2 class="mt-5">Welcome ${user.firstname}!!</h2><p class="mt-2" style="align-self: center;">You have logged in successfully</p>`)
+        }
+      }
+    })
+})
+
 app.post('/reqlogin/', (req, res, next) => {
   let email = ''
   let password = ''
@@ -160,5 +165,154 @@ app.post('/reqlogin/', (req, res, next) => {
         return res.redirect('/reqtask/')
       }
     })
+  })
+})
+
+app.route('/workers/')
+.get((req, res) => {
+  Worker.find((err, workersList)=> {
+    if (err) res.send(err)
+    else res.send(workersList)
+  })
+})
+.post((req, res, next) => {
+  const dateString = req.body.dates
+  const stringDateList = dateString ? dateString.split(",") : null
+  const dateList = []
+  if (stringDateList) {
+    stringDateList.forEach((date) => {
+      dateList.push(Date.parse(date))
+    })
+  }
+
+  const areaString = req.body.areas
+  const areaList = areaString ? areaString.split(",") : []
+
+  const worktypesString = req.body.worktypes
+  const wortypesList = worktypesString ? worktypesString.split(",") : []
+
+  // TODO: When I have implemented this as part of the user's session I will
+  // access req.session.userId directly instead of using the user email.
+  User.findOne({emailaddress: req.body.email}, (err, user) => {
+    if (err) return res.send(err)
+  }).then((user) => {
+    debugger
+    Worker.create({
+    user: user._id,
+    worktypes: wortypesList,
+    availabilities: dateList,
+    areas: areaList
+  }, (err, worker) => {
+    debugger
+    if (err) {
+      res.send(err)
+    } else {
+      res.status(201).send(JSON.stringify(worker))
+    }
+  })})
+})
+.delete((req, res) => {
+  Worker.deleteMany((err) => {
+    if (err) {
+      return res.send(err)
+    }
+    return res.send("All items deleted.")
+  })
+})
+
+app.route('/workers/:id')
+.get((req, res) => {
+  Worker.findOne({_id: req.params.id}, (err, worker) => {
+    if (err) return res.send(err)
+    else if (worker) return res.send(worker)
+    else return res.status(400).send("No worker of that name exists.")
+  })
+})
+.patch((req, res) => {
+  Worker.findOne({_id: req.params.id}, (err, worker) => {
+    if (err) return res.send(err)
+    else if (!worker) return res.status(400).send("No worker of that id exists.")
+
+    const dateString = req.body.dates
+    const stringDateList = dateString ? dateString.split(",") : null
+    const dateList = []
+    if (stringDateList) {
+      stringDateList.forEach((date) => {
+        dateList.push(Date.parse(date))
+      })
+    }
+
+    const areaString = req.body.areas
+    const areaList = areaString ? areaString.split(",") : []
+
+    const worktypesString = req.body.worktypes
+    const wortypesList = worktypesString ? worktypesString.split(",") : []
+
+    // Mongoose documents track changes. You can modify a document using
+    // vanilla JavaScript assignments and Mongoose will convert it into
+    // MongoDB update operators.
+    worker.worktypes = wortypesList
+    worker.availabilities = dateList
+    worker.areas = areaList
+    worker.save()
+
+    return res.send(worker)
+  })
+})
+.delete((req, res) => {
+  Worker.deleteOne({ _id: req.params.id }, (err) => {
+    if (err) {
+      return res.send(err)
+    }
+    return res.send("Worker deleted.")
+  })
+})
+
+app.route('/users/:id')
+.get((req, res) => {
+  User.findOne({_id: req.params.id}, (err, user) => {
+    if (err) return res.send(err)
+    else if (user) return res.send(user)
+    else return res.status(400).send("No user of that id exists.")
+  })
+})
+.patch((req, res, next) => {
+  User.findOne({_id: req.params.id}, (err, user) => {
+    debugger
+    if (err) return res.send(err)
+    else if (!user) return res.status(400).send("No user of that id exists.")
+
+    if (req.body.address) {
+      user.address = req.body.address
+    }
+
+    if (req.body.mobile) {
+      user.mobile = req.body.mobile
+    }
+
+    if (req.body.password) {
+      if (req.body.password !== req.body.confirmPassword) {
+        err = new Error('Passwords do not match.')
+        err.status = 400
+        return res.send(err)
+      }
+
+      if (password.length < 8) {
+        err = new Error('Password is too short.')
+        err.status = 400
+        return res.send(err)
+      }
+
+      bcrypt.hash(user.password, 10, (err, hash) => {
+        if (err) {
+          return res.send(err)
+        }
+        user.password = hash
+        next()
+      })
+    }
+    user.save()
+
+    return res.send(user)
   })
 })
