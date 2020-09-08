@@ -127,7 +127,6 @@ app.route('/reqsignup/')
 })
 
 app.get('/reqtask/', (req, res, next) => {
-  debugger
   User.findById(req.session.userId)
     .exec(function (error, user) {
       if (error) {
@@ -196,14 +195,12 @@ app.route('/workers/')
   User.findOne({emailaddress: req.body.email}, (err, user) => {
     if (err) return res.send(err)
   }).then((user) => {
-    debugger
     Worker.create({
     user: user._id,
     worktypes: wortypesList,
     availabilities: dateList,
     areas: areaList
   }, (err, worker) => {
-    debugger
     if (err) {
       res.send(err)
     } else {
@@ -278,7 +275,6 @@ app.route('/users/:id')
 })
 .patch((req, res, next) => {
   User.findOne({_id: req.params.id}, (err, user) => {
-    debugger
     if (err) return res.send(err)
     else if (!user) return res.status(400).send("No user of that id exists.")
 
