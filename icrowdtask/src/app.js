@@ -26,7 +26,7 @@ const App = () => {
       replace({
         pathname: "/api/login",
         state: {nextPathname: nextState.location.pathname}
-      });
+      })
     }
     next()
   }
