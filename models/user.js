@@ -1,20 +1,19 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcrypt')
+const passportLocalMongoose = require('passport-local-mongoose')
 
 const UserSchema = new mongoose.Schema(
   {
+    googleId: String,
     country: {
-      type: String,
-      required: true
+      type: String
     },
     firstname: {
-      type: String,
-      required: true
+      type: String
     },
     lastname: {
-      type: String,
-      required: true
+      type: String
     },
     emailaddress: {
       type: String,
@@ -32,16 +31,13 @@ const UserSchema = new mongoose.Schema(
       required: true
     },
     address: {
-      type: String,
-      required: true
+      type: String
     },
     city: {
-      type: String,
-      required: true
+      type: String
     },
     state: {
-      type: String,
-      required: true
+      type: String
     },
     zip: String,
     mobile: String

@@ -38,3 +38,19 @@ form {
   display: flex;
   justify-content: center;
 }
+
+.googleSigninDiv {
+  text-align: -webkit-center;
+  align-content: center;
+  align-items: center;
+}
+
+#googleSigninButton {
+  height: 80px;
+  border: none;
+}
+
+#googleSigninButton:active
+{
+    content:url(../images/btn_google_signin_dark.png);
+}

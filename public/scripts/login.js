@@ -1,6 +1,6 @@
 
 document.getElementById("createUser").onclick = () => {
-  location.href = "/reqsignup/"
+  location.href = "/api/reqsignup/"
 }
 
 // Get form's DOM object
@@ -20,11 +20,6 @@ loginForm.addEventListener('submit', ev => {
   // Define what happens in case of error
   XHR.addEventListener('error', function(ev) {
     alert('Oops! Something went wrong.')
-  })
-
-  // Save credentials when successful
-  XHR.addEventListener('onload', function(ev) {
-    debugger
   })
 
   XHR.onreadystatechange = function() {
@@ -53,7 +48,7 @@ loginForm.addEventListener('submit', ev => {
   }
 
   // Set up our request
-  XHR.open('POST', '/reqlogin/')
+  XHR.open('POST', '/api/reqlogin/')
 
   // Send our FormData object. HTTP headers are set automatically
   XHR.send(FD)

@@ -7,47 +7,133 @@ const multiparty = require('multiparty')
 const session = require('express-session')
 const User = require('./models/user')
 const Worker = require('./models/worker')
-const sendEmail = require('./public/scripts/email')
+const sendEmail = require('./icrowdtask/public/scripts/email')
 const bcrypt = require('bcrypt')
+const passport = require('passport')
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
+const path = require('path')
+const cors = require("cors")
 
 require('dotenv').config()
 
 const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
-app.use(express.static('public'))
+app.use(express.static(__dirname + '/public'))
 
 // Attach session allowing for different security in local to production.
 const sess_attr = {
-  secret: 'sit313',
-  cookie: {}
+  secret: process.env.SESSIONKEY,
+  saveUninitialized: true,
+  resave: true,
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000,  // 1 day
+  }
 }
-if (app.get('env') === 'production') {
-  app.set('trust proxy', 1) // trust first proxy
-  sess_attr.cookie.secure = true // serve secure cookies
-}
+
+// The following will only work per sessions docs if the sight is https
+// if (app.get('env') === 'production') {
+//   app.set('trust proxy', 1) // trust first proxy
+//   sess_attr.cookie.secure = true // serve secure cookies
+// }
+
 app.use(session(sess_attr))
+app.use(cors())
+app.use(passport.initialize())
+app.use(passport.session())
 
-const uri = "mongodb+srv://admin:jDrsgl9svkYVq0hd@cluster0.xtcre.mongodb.net/icrowdtask?retryWrites=true&w=majority"
+mongoose.connect(process.env.DBURI, {useNewUrlParser: true})
 
-mongoose.connect(uri, {useNewUrlParser: true})
+passport.serializeUser((user, done) => {
+  done(null, user.id)
+})
+
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user)
+  })
+})
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLEID,
+      clientSecret: process.env.GOOGLESECRET,
+      callbackURL: "http://localhost:3000/auth/google/callback/"
+    },
+    (accessToken, refreshToken, profile, done) => {
+          User.findOne({googleId: profile.id}).then((user) => {
+        if (user) {
+          done(null, user)
+        } else {
+          // This will allow us to update the db if user signs in first time with Google
+          User.findOne({emailaddress: profile.emails[0].value}).then((user) => {
+            if(user) {
+              user.googleId = profile.id
+              user.save()
+              done(null, user)
+            } else {
+              // At the moment this would mean the user would never have a password set
+              // and would not be able to login without Google Auth
+              new User({
+                emailaddress: profile.emails[0].value,
+                googleId: profile.id,
+                firstname: profile.name.givenName,
+                lastname: profile.name.familyName
+              }).save().then((newUser) => {
+                done(null, newUser)
+              })
+            }
+          })
+        }
+      })
+    }
+  )
+)
 
 let port = process.env.PORT;
+
+if (port) {
+  app.use(express.static(path.join(__dirname, 'icrowdtask/build')))
+
+  // Send to react
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'icrowdtask', 'build', 'index.html'))
+  })
+}
+
 if (port == null || port == "") {
   port = 8000;
 }
+
 app.listen(port);
 
 app.get('/', (req, res) => {
-  if (req.session.userId) {
-    res.redirect('/reqtask/')
+  if (req.isAuthenticated()) {
+    res.redirect('/')
   } else {
-    res.sendFile(__dirname + '/frontend/reqlogin.html')
+    res.redirect('/api/reqlogin/')
   }
 })
 
-app.route('/reqsignup/')
-.get((req, res) => res.sendFile(__dirname + '/frontend/reqsignup.html'))
+app.get("/auth/google/", passport.authenticate('google', {
+  scope: ['profile', 'email']
+}))
+
+app.get('/auth/google/callback/',
+  passport.authenticate('google', { failureRedirect: '/api/reqlogin/' }),
+  (req, res) => {
+      res.redirect('/')
+  }
+)
+
+app.post('/api/logout/', (req, res, next) => {
+  req.logout()
+  next()
+})
+
+app.route('/api/reqsignup/')
+.get((req, res) => res.sendFile(path.join(__dirname, 'public', 'reqsignup.html')))
 .post((req, res, next) => {
   const country = req.body.country
   const firstname = req.body.firstname
@@ -122,28 +208,33 @@ app.route('/reqsignup/')
       mobile: mobile
     }
 
-    res.sendFile(__dirname + '/frontend/400.html')
+    res.sendFile(path.join(__dirname, 'public', '400.html'))
   }
 })
 
-app.get('/reqtask/', (req, res, next) => {
-  User.findById(req.session.userId)
-    .exec(function (error, user) {
-      if (error) {
-        return next(error)
-      } else {
-        if (!user) {
-          var err = new Error('Please sign in.')
-          err.status = 400
-          return next(err)
+app.get('/api/reqtask/', (req, res, next) => {
+  if (req.isAuthenticated()) {
+    User.findById(req.session.passport.user)
+      .exec(function (error, user) {
+        if (error) {
+          return res.redirect('/api/reqlogin/')
         } else {
-          return res.send(`<h2 class="mt-5">Welcome ${user.firstname}!!</h2><p class="mt-2" style="align-self: center;">You have logged in successfully</p>`)
+          if (!user) {
+            var err = new Error('Please sign in.')
+            err.status = 400
+            return res.redirect('/api/reqlogin/')
+          } else {
+            return res.send(`<h2 class="mt-5">Welcome ${user.firstname}!!</h2><p class="mt-2" style="align-self: center;">You have logged in successfully</p>`)
+          }
         }
       }
-    })
+    )
+  }
 })
 
-app.post('/reqlogin/', (req, res, next) => {
+app.route('/api/reqlogin/')
+.get((req, res) => res.sendFile(path.join(__dirname, 'public', 'reqlogin.html')))
+.post((req, res, next) => {
   let email = ''
   let password = ''
 
@@ -155,19 +246,30 @@ app.post('/reqlogin/', (req, res, next) => {
 
     // Authenticate email for login
     User.authenticate(email, password, (error, user) => {
+
       if (error) {
         var err = new Error('Wrong email or password.')
-        err.status = 401;
-        return next(err);
+        err.status = 401
+        return next(err)
+      }
+      if (!user) {
+        var err = new Error('User cannot be found.')
+        err.status = 401
+        return next(err)
       } else {
-        req.session.userId = user.id;
-        return res.redirect('/reqtask/')
+        debugger
+        if (req.session.passport) {
+          req.session.passport.user = user.id
+        } else {
+          req.session.passpot = {user: user.id}
+        }
+        return res.redirect('/home')
       }
     })
   })
 })
 
-app.route('/workers/')
+app.route('/api/workers/')
 .get((req, res) => {
   Worker.find((err, workersList)=> {
     if (err) res.send(err)
@@ -217,7 +319,7 @@ app.route('/workers/')
   })
 })
 
-app.route('/workers/:id')
+app.route('/api/workers/:id')
 .get((req, res) => {
   Worker.findOne({_id: req.params.id}, (err, worker) => {
     if (err) return res.send(err)
@@ -265,7 +367,7 @@ app.route('/workers/:id')
   })
 })
 
-app.route('/users/:id')
+app.route('/api/users/:id')
 .get((req, res) => {
   User.findOne({_id: req.params.id}, (err, user) => {
     if (err) return res.send(err)
