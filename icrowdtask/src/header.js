@@ -1,36 +1,50 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { NavLink }  from 'react-router-dom'
+import Navbar from 'react-bootstrap/Navbar'
+import Nav from 'react-bootstrap/Nav'
+import NavDropdown from 'react-bootstrap/NavDropdown'
 
 const Header = (props) => {
-  return (
+  const [username, setUsername] = useState('Account')
+
+  const setUser = () => {
+    if (props.user && props.user.firstname) {
+      setUsername(`${props.user.firstname} ${props.user.lastname}`)
+    }
+  }
+
+  useEffect(setUser, [props])
+
+  const logoutComponent = (
     <>
-      <header>
-        <ul className="nav justify-content-end">
-          <li className="nav-item">
-            <NavLink className="nav-link active" to="/">Tasks</NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink className="nav-link" to="/">Find a Helper</NavLink>
-          </li>
-          <li className="nav-item dropdown">
-            <a className="nav-link dropdown-toggle" data-toggle="dropdown" href="/" role="button" aria-haspopup="true" aria-expanded="false">Account</a>
-            <div className="dropdown-menu">
-              <NavLink className="dropdown-item" to="/">Preferences</NavLink>
-              {props.loggedin &&
-                <NavLink className="dropdown-item" onClick={props.logout} to="/loggedout">Logout</NavLink>
-              }
-            </div>
-          </li>
-        </ul>
-      </header>
+      <NavDropdown.Divider />
+      <NavDropdown.Item href="/loggedout" onClick={props.logout} >Logout</NavDropdown.Item>
     </>
+  )
+
+  return (
+    <Navbar bg="light" variant="light">
+      <Navbar.Brand href="#home">iCrowdTask</Navbar.Brand>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="mr-auto">
+          <Nav.Link href="#home">Tasks</Nav.Link>
+          <Nav.Link href="#features">Find a Helper</Nav.Link>
+        </Nav>
+        <NavDropdown title={username} id="basic-nav-dropdown">
+          <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
+          {props.loggedin &&
+            logoutComponent}
+        </NavDropdown>
+      </Navbar.Collapse>
+    </Navbar>
   )
 }
 
 Header.propTypes = {
   loggedin: PropTypes.bool,
-  logout: PropTypes.func
+  logout: PropTypes.func,
+  user: PropTypes.any
 }
 
 export default Header

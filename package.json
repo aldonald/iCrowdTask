@@ -41,7 +41,7 @@
     "server": "nodemon --inspect server.js",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "start": "node server.js",
-    "heroku-postbuild": "cd icrowdtask && yarn && yarn start"
+    "heroku-postbuild": "cd icrowdtask && yarn && yarn build && yarn start"
   },
   "repository": {
     "type": "git",

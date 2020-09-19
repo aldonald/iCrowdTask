@@ -91,26 +91,20 @@ passport.use(
   )
 )
 
-let port = process.env.PORT;
-
-if (port) {
-  app.use(express.static(path.join(__dirname, 'icrowdtask/build')))
-
-  // Send to react
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'icrowdtask', 'build', 'index.html'))
-  })
-}
-
-if (port == null || port == "") {
-  port = 8000;
-}
-
-app.listen(port);
-
-app.get('/', (req, res) => {
+app.get('/api/user', (req, res) => {
   if (req.isAuthenticated()) {
-    res.redirect('/')
+    User.findById(req.session.passport.user)
+      .exec((error, user) => {
+        if (error || !user) {
+          var err = new Error('User not found.')
+          err.status = 500
+          return res.redirect('/api/reqlogin/')
+        } else {
+          console.log(JSON.stringify(user))
+          res.send(JSON.stringify(user))
+        }
+      }
+    )
   } else {
     res.redirect('/api/reqlogin/')
   }
@@ -127,9 +121,10 @@ app.get('/auth/google/callback/',
   }
 )
 
-app.post('/api/logout/', (req, res, next) => {
+app.route('/api/logout/')
+.post((req, res, next) => {
   req.logout()
-  next()
+  res.send('OK')
 })
 
 app.route('/api/reqsignup/')
@@ -414,3 +409,20 @@ app.route('/api/users/:id')
     return res.send(user)
   })
 })
+
+let port = process.env.PORT;
+
+if (port) {
+  app.use(express.static(path.join(__dirname, 'icrowdtask/build')))
+
+  // Send to react
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'icrowdtask', 'build', 'index.html'))
+  })
+}
+
+if (port == null || port == "") {
+  port = 8000;
+}
+
+app.listen(port)
