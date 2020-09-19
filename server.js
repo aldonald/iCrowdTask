@@ -413,7 +413,7 @@ app.route('/api/users/:id')
 let port = process.env.PORT;
 
 if (port) {
-  app.use(express.static(path.join(__dirname, 'icrowdtask/build')))
+  app.use(express.static(path.join(__dirname, 'icrowdtask/build/public')))
 
   // Send to react
   app.get('*', (req, res) => {
