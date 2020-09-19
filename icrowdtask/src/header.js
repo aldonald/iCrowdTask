@@ -15,7 +15,7 @@ const Header = (props) => {
 
   useEffect(setUser, [props])
 
-  const logoutComponent = (
+  const LogoutComponent = (
     <>
       <NavDropdown.Divider />
       <NavDropdown.Item href="/loggedout" onClick={props.logout} >Logout</NavDropdown.Item>
@@ -34,7 +34,7 @@ const Header = (props) => {
         <NavDropdown title={username} id="basic-nav-dropdown">
           <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
           {props.loggedin &&
-            logoutComponent}
+            LogoutComponent}
         </NavDropdown>
       </Navbar.Collapse>
     </Navbar>

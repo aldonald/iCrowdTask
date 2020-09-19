@@ -52,7 +52,6 @@ const App = () => {
   const requireAuth = (nextState, replace, next) => {
     console.log(nextState)
     console.log(replace)
-    debugger
     if (!true) {
       replace({
         pathname: "/api/login",

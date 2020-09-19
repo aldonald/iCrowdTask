@@ -19,7 +19,7 @@ require('dotenv').config()
 const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
-app.use(express.static(__dirname + '/public'))
+app.use(express.static(__dirname + 'icrowdtask/public'))
 
 // Attach session allowing for different security in local to production.
 const sess_attr = {
@@ -417,6 +417,7 @@ if (port) {
 
   // Send to react
   app.get('*', (req, res) => {
+    console.log('GET CALLED')
     res.sendFile(path.join(__dirname, 'icrowdtask', 'build', 'index.html'))
   })
 }
