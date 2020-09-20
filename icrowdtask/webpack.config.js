@@ -18,7 +18,7 @@ module.exports = {
   },
   output: {
     path: __dirname + '/public',
-    publicPath: '/',
+    publicPath: '/icrowdtask/',
     filename: 'bundle.js'
   },
   devServer: {
