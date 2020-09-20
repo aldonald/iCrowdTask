@@ -27,7 +27,9 @@
     "path": "^0.12.7",
     "sendgrid": "^5.2.3",
     "validator": "^13.1.1",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.0",
+    "react-scripts": "^3.4.3",
+    "webpack-cli": "^3.3.12"
   },
   "devDependencies": {
     "concurrently": "^4.0.1"

@@ -18,7 +18,7 @@ const Header = (props) => {
   const LogoutComponent = (
     <>
       <NavDropdown.Divider />
-      <NavDropdown.Item href="/loggedout" onClick={props.logout} >Logout</NavDropdown.Item>
+      <NavDropdown.Item href="/api/reqlogin" onClick={props.logout} >Logout</NavDropdown.Item>
     </>
   )
 
