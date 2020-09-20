@@ -33,7 +33,8 @@ const App = () => {
 
   useEffect(fetchUser, [])
 
-  const logout = () => {
+  const logout = (ev) => {
+    if (ev) ev.preventDefault()
     setLoggedin(false)
     fetch('/api/logout/', {method: 'POST', credentials: 'include'})
     .then((res) => {
