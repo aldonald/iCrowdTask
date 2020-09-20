@@ -34,7 +34,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "heroku-postbuild": "cd icrowdtask && yarn run start",
+    "heroku-postbuild": "cd icrowdtask && yarn start",
     "client": "cd icrowdtask && yarn dev",
     "server": "nodemon --inspect server.js",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
