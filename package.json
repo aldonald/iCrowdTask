@@ -8,8 +8,15 @@
   },
   "main": "server.js",
   "dependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-react": "^7.10.4",
     "@sendgrid/client": "^7.2.4",
     "@sendgrid/mail": "^7.2.4",
+    "aws-sdk": "^2.755.0",
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^8.1.0",
+    "babel-preset-react-app": "^3.1.2",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.2",
@@ -20,6 +27,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "http-proxy-middleware": "^1.0.5",
+    "mini-css-extract-plugin": "^0.11.2",
     "mongoose": "^5.10.6",
     "multiparty": "^4.2.2",
     "passport": "^0.4.1",
@@ -40,12 +48,17 @@
     "concurrently": "^4.0.1"
   },
   "scripts": {
-    "start": "node server.js",
+    "build": "webpack",
+    "prod-build": "webpack -p --env production",
+    "start": "webpack-dev-server --watch",
+    "start-server": "nodemon server/server.js",
     "heroku-postbuild": "cd icrowdtask && npm run start",
-    "client": "cd icrowdtask && yarn dev",
+    "client": "yarn dev",
     "server": "nodemon --inspect server.js",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+    "eject": "react-scripts eject"
   },
+  "proxy": "http://localhost:8000",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aldonald/iCrowdTask.git"
