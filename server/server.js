@@ -417,7 +417,6 @@ if (port) {
 
   // Send to react
   app.get('*', (req, res) => {
-    console.log('GET CALLED')
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'))
   })
 }
