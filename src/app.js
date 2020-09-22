@@ -5,7 +5,6 @@ import {
 } from 'react-router-dom'
 import Header from './header'
 import TaskList from './tasklist'
-import Login from './login'
 // import { useHistory } from "react-router-dom"
 
 
@@ -54,8 +53,8 @@ const App = () => {
 
   useEffect(checkLoggedIn, [loading])
 
+  // This is work in progress
   const requireAuth = (nextState, replace, next) => {
-    debugger
     console.log(nextState)
     console.log(replace)
     if (!true) {
@@ -76,7 +75,6 @@ const App = () => {
           <div className="content">
             <Route exact path="/" component={TaskList} onEnter={requireAuth} />
             <Route path="/home" component={TaskList} onEnter={requireAuth} />
-            <Route path="/login" component={Login} />
           </div>
         </HashRouter>)
       }

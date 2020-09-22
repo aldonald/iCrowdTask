@@ -1,6 +1,66 @@
 const http = require("https")
 
-const sendEmail = (email, firstname, lastname, country) => {
+const sendEmail = (type, user, email, firstname, lastname, country, code) => {
+  let content
+  if (type === 'welcome') {
+    content = {
+      personalizations: [
+        {
+          to: [
+            {
+              email: email,
+              name: `${firstname} ${lastname}`
+            }
+          ],
+          dynamic_template_data: {
+            name: firstname,
+            country: country
+          },
+          subject: "Welcome to iCrowdTask!"
+        }
+      ],
+      from: {
+        email: 'team@icrowdtask.works',
+        name: 'iCrowdTask Team'
+      },
+      reply_to: {
+        email: 'team@icrowdtask.works',
+        name: 'iCrowdTask Team'
+      },
+      template_id: 'd-135d94ab55f5421f94b8acad91f63115'
+    }
+  }
+
+  if (type === 'forgot') {
+    content = {
+      personalizations: [
+        {
+          to: [
+            {
+              email: email,
+              name: firstname
+            }
+          ],
+          dynamic_template_data: {
+            user: user,
+            name: firstname,
+            code: code
+          },
+          subject: "Password reset for iCrowdTask."
+        }
+      ],
+      from: {
+        email: 'team@icrowdtask.works',
+        name: 'iCrowdTask Team'
+      },
+      reply_to: {
+        email: 'team@icrowdtask.works',
+        name: 'iCrowdTask Team'
+      },
+      template_id: 'd-353da91d57ba4a94b3f258fb5f0ad065'
+    }
+  }
+
   const options = {
     "method": "POST",
     "hostname": "api.sendgrid.com",
@@ -26,33 +86,7 @@ const sendEmail = (email, firstname, lastname, country) => {
 
     })
   })
-
-  req.write(JSON.stringify({
-    personalizations: [
-      {
-        to: [
-          {
-            email: email,
-            name: `${firstname} ${lastname}`
-          }
-        ],
-        dynamic_template_data: {
-          name: firstname,
-          country: country
-        },
-        subject: "Welcome to iCrowdTask!"
-      }
-    ],
-    from: {
-      email: 'team@icrowdtask.works',
-      name: 'iCrowdTask Team'
-    },
-    reply_to: {
-      email: 'team@icrowdtask.works',
-      name: 'iCrowdTask Team'
-    },
-    template_id: 'd-135d94ab55f5421f94b8acad91f63115'
-  }))
+  req.write(JSON.stringify(content))
   req.end()
 }
 

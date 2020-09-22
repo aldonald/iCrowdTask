@@ -13,6 +13,8 @@ const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const path = require('path')
 const cors = require("cors")
+const crypto = require('crypto')
+var flash = require('connect-flash')
 
 require('dotenv').config()
 
@@ -41,6 +43,15 @@ app.use(session(sess_attr))
 app.use(cors())
 app.use(passport.initialize())
 app.use(passport.session())
+
+app.use(flash())
+
+// Store flashed messages so ca be accessed on the next screen
+app.use((req, res, next) => {
+    res.locals.success_messages = req.flash('success_messages')
+    res.locals.error_messages = req.flash('error_messages')
+    next()
+})
 
 mongoose.connect(process.env.DBURI, {useNewUrlParser: true})
 
@@ -100,7 +111,6 @@ app.get('/api/user', (req, res) => {
           err.status = 500
           return res.redirect('/api/reqlogin/')
         } else {
-          console.log(JSON.stringify(user))
           res.send(JSON.stringify(user))
         }
       }
@@ -185,7 +195,7 @@ app.route('/api/reqsignup/')
         console.log(err)
         // return next(err)
       } else {
-        sendEmail(user.emailaddress, user.firstname, user.lastname, user.country)
+        sendEmail('welcome', user._id, user.emailaddress, user.firstname, user.lastname, user.country, null)
         return res.redirect('/')
       }
     })
@@ -204,6 +214,80 @@ app.route('/api/reqsignup/')
     }
 
     res.sendFile(path.join(__dirname, '..', 'public', '400.html'))
+  }
+})
+
+app.route('/api/forgotpassword/')
+.get((req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'passwordemailform.html'))
+})
+.post((req, res, next) => {
+  User.findOne({emailaddress: req.body.email})
+  .exec((error, user) => {
+    if (error || !user) {
+      req.flash('error', 'No account with that email exists.')
+      return res.redirect('/api/forgotpassword')
+    } else {
+      var token = crypto.randomBytes(64).toString('hex')
+      user.passwordResetToken = token
+      user.passwordTokenCreated = Date.now()
+      user.save()
+      sendEmail('forgot', user._id, user.emailaddress, user.firstname, null, null, token)
+      req.flash('info', `A reset email has been sent to ${user.email}.`)
+      return res.redirect('/api/reqlogin/')
+    }
+  })
+})
+
+app.get('/api/passwordreset/:id/:token', (req, res, next) => {
+  const token = req.params.token
+
+  User.findById(req.params.id)
+  .exec(function (error, user) {
+    if (error || !user) {
+      var err = new Error('Please sign in.')
+      err.status = 400
+      return res.redirect('/api/reqlogin/')
+    } else {
+      // Needs to be less than an hour old
+      const requestAge = Date.now() - user.passwordTokenCreated
+      if (user.passwordResetToken === token && requestAge < 3600000) {
+        req.session.passport = {user: user.id}
+        res.sendFile(path.join(__dirname, '..', 'public', 'passwordreset.html'))
+      } else {
+        var err = new Error('Information incorrect.')
+        err.status = 400
+        return res.redirect('/api/reqlogin/')
+      }
+    }
+  })
+})
+
+app.post('/api/passwordreset/', (req, res, next) => {
+  if (req.isAuthenticated()) {
+    User.findById(req.session.passport.user)
+    .exec(function (error, user) {
+      if (error || !user) {
+        var err = new Error('Please sign in.')
+        err.status = 400
+        return res.redirect('/api/reqlogin/')
+      } else {
+        user.passwordResetToken = null
+        user.passwordTokenCreated = null
+        if (req.body.inputPassword !== req.body.confirmPassword) {
+          var err = new Error('Passwords do not match.')
+          err.status = 400
+          return req.redirect(`/api/passwordreset/${id}/${token}`)
+        } else {
+          user.password = req.body.inputPassword
+          user.save()
+        }
+        debugger
+        res.redirect('/')
+      }
+    })
+  } else {
+    return res.redirect('/api/reqlogin/')
   }
 })
 
@@ -252,11 +336,10 @@ app.route('/api/reqlogin/')
         err.status = 401
         return next(err)
       } else {
-        debugger
         if (req.session.passport) {
           req.session.passport.user = user.id
         } else {
-          req.session.passpot = {user: user.id}
+          req.session.passport = {user: user.id}
         }
         return res.redirect('/home')
       }

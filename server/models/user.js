@@ -40,7 +40,9 @@ const UserSchema = new mongoose.Schema(
       type: String
     },
     zip: String,
-    mobile: String
+    mobile: String,
+    passwordResetToken: String,
+    passwordTokenCreated: Date
   }
 )
 
