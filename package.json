@@ -50,12 +50,10 @@
   "scripts": {
     "build": "webpack",
     "prod-build": "webpack -p --env production",
-    "start": "webpack-dev-server --watch",
-    "start-server": "nodemon server/server.js",
+    "start-server": "webpack-dev-server --watch",
+    "start": "npm run prod-build && node server/server.js",
     "heroku-postbuild": "cd icrowdtask && npm run start",
-    "client": "yarn dev",
     "server": "nodemon --inspect server.js",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:8000",
