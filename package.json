@@ -52,7 +52,6 @@
     "prod-build": "webpack -p --env production",
     "start-server": "webpack-dev-server --watch",
     "start": "npm run prod-build && node server/server.js",
-    "heroku-postbuild": "cd icrowdtask && npm run start",
     "server": "nodemon --inspect server.js",
     "eject": "react-scripts eject"
   },
