@@ -413,8 +413,7 @@ app.route('/api/users/:id')
 let port = process.env.PORT;
 
 if (port) {
-  consloe.log('Dev server used.')
-  app.use(express.static(path.join(__dirname, '..', 'public')))
+  // app.use(express.static(path.join(__dirname, '..', 'public')))
 
   // Send to react
   app.get('*', (req, res) => {
