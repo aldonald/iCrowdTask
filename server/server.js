@@ -19,7 +19,7 @@ require('dotenv').config()
 const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
-app.use(express.static(path.join(__dirname, '..', 'public')))
+app.use('/', express.static(path.join(__dirname, '..', 'public')))
 
 // Attach session allowing for different security in local to production.
 const sess_attr = {
@@ -413,6 +413,7 @@ app.route('/api/users/:id')
 let port = process.env.PORT;
 
 if (port) {
+  consloe.log('Dev server used.')
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
   // Send to react

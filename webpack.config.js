@@ -32,10 +32,12 @@ module.exports = (prod) => {
       contentBase: path.join(__dirname, 'public'),
       proxy: {
         "/api": {
-          target: "http://localhost:8000"
+          target: "http://localhost:8000",
+          secure: false
         },
         "/auth": {
-          target: "http://localhost:8000"
+          target: "http://localhost:8000",
+          secure: false
         }
       }
     },
