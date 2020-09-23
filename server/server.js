@@ -14,7 +14,6 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const path = require('path')
 const cors = require("cors")
 const crypto = require('crypto')
-var flash = require('connect-flash')
 
 require('dotenv').config()
 
@@ -43,15 +42,6 @@ app.use(session(sess_attr))
 app.use(cors())
 app.use(passport.initialize())
 app.use(passport.session())
-
-app.use(flash())
-
-// Store flashed messages so ca be accessed on the next screen
-app.use((req, res, next) => {
-    res.locals.success_messages = req.flash('success_messages')
-    res.locals.error_messages = req.flash('error_messages')
-    next()
-})
 
 mongoose.connect(process.env.DBURI, {useNewUrlParser: true})
 
@@ -195,7 +185,7 @@ app.route('/api/reqsignup/')
         console.log(err)
         // return next(err)
       } else {
-        sendEmail('welcome', user._id, user.emailaddress, user.firstname, user.lastname, user.country, null)
+        sendEmail('welcome', user._id.toString(), user.emailaddress, user.firstname, user.lastname, user.country, null)
         return res.redirect('/')
       }
     })
@@ -218,23 +208,19 @@ app.route('/api/reqsignup/')
 })
 
 app.route('/api/forgotpassword/')
-.get((req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'passwordemailform.html'))
-})
+.get((req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'passwordemailform.html')))
 .post((req, res, next) => {
   User.findOne({emailaddress: req.body.email})
   .exec((error, user) => {
     if (error || !user) {
-      req.flash('error', 'No account with that email exists.')
-      return res.redirect('/api/forgotpassword')
+      return res.sendFile(path.join(__dirname, '..', 'public', 'passwordemailform.html'))
     } else {
       var token = crypto.randomBytes(64).toString('hex')
       user.passwordResetToken = token
       user.passwordTokenCreated = Date.now()
       user.save()
-      sendEmail('forgot', user._id, user.emailaddress, user.firstname, null, null, token)
-      req.flash('info', `A reset email has been sent to ${user.email}.`)
-      return res.redirect('/api/reqlogin/')
+      sendEmail('forgot', user._id.toString(), user.emailaddress, user.firstname, null, null, token)
+      return res.sendFile(path.join(__dirname, '..', 'public', 'api/passwordemailsent/'))
     }
   })
 })
@@ -282,7 +268,6 @@ app.post('/api/passwordreset/', (req, res, next) => {
           user.password = req.body.inputPassword
           user.save()
         }
-        debugger
         res.redirect('/')
       }
     })
