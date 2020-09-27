@@ -7,6 +7,8 @@ const multiparty = require('multiparty')
 const session = require('express-session')
 const User = require('./models/user')
 const Worker = require('./models/worker')
+const UserImage = require('./models/userImage')
+const Request = require('./models/Request')
 const sendEmail = require('../public/scripts/email')
 const bcrypt = require('bcrypt')
 const passport = require('passport')
@@ -14,6 +16,11 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 const path = require('path')
 const cors = require("cors")
 const crypto = require('crypto')
+const faker = require('faker')
+const multer = require('multer')
+const fileUpload = require('express-fileupload')
+const fs = require('fs')
+const populateRequestors = require('./populateRequestors')
 
 require('dotenv').config()
 
@@ -21,6 +28,14 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use('/', express.static(path.join(__dirname, '..', 'public')))
+app.use(fileUpload())
+
+const upload = multer({
+  dest: 'uploads/',
+  rename: function (fieldname, filename) {
+    return filename
+  }
+})
 
 // Attach session allowing for different security in local to production.
 const sess_attr = {
@@ -227,7 +242,6 @@ app.route('/api/forgotpassword/')
 
 app.get('/api/passwordreset/:id/:token', (req, res, next) => {
   const token = req.params.token
-
   User.findById(req.params.id)
   .exec(function (error, user) {
     if (error || !user) {
@@ -303,7 +317,6 @@ app.route('/api/reqlogin/')
   let password = ''
 
   let form = new multiparty.Form()
-  form.parse(req)
   form.parse(req, function(err, fields, files) {
     email = fields.email[0]
     password = fields.password[0]
@@ -475,6 +488,51 @@ app.route('/api/users/:id')
     user.save()
 
     return res.send(user)
+  })
+})
+
+app.route('/api/userimage/')
+.get((req, res) => {
+  UserImage.find({user: req.session.passport.user})
+  .exec((error, images) => {
+    if (error || !images) {
+      if (!error) {
+        var err = new Error('No image found.')
+        err.status = 400
+      }
+      return res.json(error)
+    }
+    images.sort((a, b) => b.created - a.created)
+    return res.json(images[0])
+  })
+})
+.post((req, res) => {
+  if (req.files === null) return res.status(400).json({msg: "No file uploaded"})
+  const file = req.files.image
+  const created = Date.now()
+
+  const image = new UserImage()
+  image.name = file.name
+  image.img.data = file.data
+  image.img.contentType = file.mimetype
+  image.user = req.session.passport.user
+  image.created = created
+  image.save()
+
+  return res.status(201).json(image)
+})
+
+app.get('/api/requestors/', (req, res) => {
+  Request.find({}).exec((err, requestList) => {
+    if (err) return res.status(500).send(err)
+    // Until workers are signed up!
+    if (!requestList.length) {
+      requestList = populateRequestors(8)
+    }
+    const user = req.session.passport.user
+    let requestsToSend
+    if (user) requestsToSend = requestList.filter(request => request.user !== user)
+    return res.json(requestsToSend)
   })
 })
 

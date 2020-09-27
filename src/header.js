@@ -15,27 +15,33 @@ const Header = (props) => {
 
   useEffect(setUser, [props])
 
-  const LogoutComponent = (
-    <>
+  const LoggedInComponent = (
+    <NavDropdown title={username} id="basic-nav-dropdown">
+      <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
       <NavDropdown.Divider />
       <NavDropdown.Item href="/api/reqlogin" onClick={props.logout} >Logout</NavDropdown.Item>
-    </>
+    </NavDropdown>
   )
 
   return (
-    <Navbar bg="light" variant="light">
-      <Navbar.Brand href="#home">iCrowdTask</Navbar.Brand>
+    <Navbar bg="light" variant="light" fixed="top">
+      <Navbar.Brand href="/">iCrowdTask</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
-          <Nav.Link href="#home">Tasks</Nav.Link>
-          <Nav.Link href="#features">Find a Helper</Nav.Link>
+          <Nav.Link href="/howitworks">How it works</Nav.Link>
+          <Nav.Link href="/requesters">Requesters</Nav.Link>
+          <Nav.Link href="/workers">Workers</Nav.Link>
+          <Nav.Link href="/pricing">Pricing</Nav.Link>
+          <Nav.Link href="/about">About</Nav.Link>
         </Nav>
-        <NavDropdown title={username} id="basic-nav-dropdown">
-          <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
-          {props.loggedin &&
-            LogoutComponent}
-        </NavDropdown>
+        {props.loggedin &&
+          LoggedInComponent}
+        {!props.loggedin &&
+          <Nav className="ml-auto">
+            <Nav.Link href="/api/reqlogin/">Sign in</Nav.Link>
+          </Nav>}
+
       </Navbar.Collapse>
     </Navbar>
   )

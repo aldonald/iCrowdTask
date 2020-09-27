@@ -24,6 +24,21 @@ module.exports = (prod) => {
             }, 'css-loader'
           ],
           test: /\.css/
+        },
+        {
+          test: /\.(png|jpe?g|gif)$/i,
+          loader: 'file-loader',
+          options: {
+            name(resourcePath, resourceQuery) {
+              // `resourcePath` - `/absolute/path/to/file.js`
+              // `resourceQuery` - `?foo=bar`
+              return `[path][name]-${Date.now()}.[ext]`
+            }
+          }
+        },
+        {
+          test: /\.svg$/,
+          loader: 'svg-inline-loader'
         }
       ]
     },

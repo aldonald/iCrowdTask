@@ -5,6 +5,7 @@ import {
 } from 'react-router-dom'
 import Header from './header'
 import TaskList from './tasklist'
+import Home from './home'
 // import { useHistory } from "react-router-dom"
 
 
@@ -73,7 +74,7 @@ const App = () => {
         (<HashRouter>
           <Header loggedin={loggedin} logout={logout} user={user} />
           <div className="content">
-            <Route exact path="/" component={TaskList} onEnter={requireAuth} />
+            <Route exact path="/" component={Home} onEnter={requireAuth} />
             <Route path="/home" component={TaskList} onEnter={requireAuth} />
           </div>
         </HashRouter>)
