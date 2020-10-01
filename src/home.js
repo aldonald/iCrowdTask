@@ -41,16 +41,18 @@ const Home = (props) => {
     <>
       <HeadImg />
       <h2 className="mt-3">Featured Requestors</h2>
-      <div className="container-fluid content-row mt-5">
-        <div className="row">
-          {requestorList.map((requestor, i) => (
-            <Requestor
-              key={`requestor-${i}`}
-              requestor={requestor}
-            />)
-          )}
+      <Container>
+        <div className="container-fluid content-row mt-5">
+          <div className="row">
+            {requestorList.map((requestor, i) => (
+              <Requestor
+                key={`requestor-${i}`}
+                requestor={requestor}
+              />)
+            )}
+          </div>
         </div>
-      </div>
+      </Container>
       <Footer />
     </>
   )
