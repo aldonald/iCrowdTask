@@ -49,7 +49,6 @@ const Home = (props) => {
                 requestor={requestor}
               />)
             )}
-          </div>
         </Row>
       </Container>
       <Footer />
