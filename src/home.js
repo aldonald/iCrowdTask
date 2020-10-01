@@ -43,13 +43,11 @@ const Home = (props) => {
       <h2 className="mt-3">Featured Requestors</h2>
       <div className="container-fluid content-row mt-5">
         <div className="row">
-          {requestorList.map((requestor, i) =>
+          {requestorList.map((requestor, i) => (
             <Requestor
               key={`requestor-${i}`}
-              logo={requestor.logo}
-              name={requestor.name}
-              description={requestor.description}
-            />
+              requestor={requestor}
+            />)
           )}
         </div>
       </div>

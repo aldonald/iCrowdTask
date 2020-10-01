@@ -78,26 +78,39 @@ passport.use(
       callbackURL: "/auth/google/callback/"
     },
     (accessToken, refreshToken, profile, done) => {
-          User.findOne({googleId: profile.id}).then((user) => {
+      User.findOne({googleId: profile.id}).exec((error, user) => {
         if (user) {
           done(null, user)
         } else {
           // This will allow us to update the db if user signs in first time with Google
-          User.findOne({emailaddress: profile.emails[0].value}).then((user) => {
-            if(user) {
+          User.findOne({emailaddress: profile.emails[0].value}).exec((error, user) => {
+            if (user) {
               user.googleId = profile.id
               user.save()
               done(null, user)
             } else {
               // At the moment this would mean the user would never have a password set
               // and would not be able to login without Google Auth
-              new User({
+              const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+              let finalPassword = ""
+              for (var i = 0; i < 8; ++i) {
+                  finalPassword += alpha.charAt(Math.floor(Math.random() * alpha.length))
+              }
+              const user = User.create({
                 emailaddress: profile.emails[0].value,
-                googleId: profile.id,
-                firstname: profile.name.givenName,
-                lastname: profile.name.familyName
-              }).save().then((newUser) => {
-                done(null, newUser)
+                firstname : profile.name && profile.name.givenName ? profile.name.givenName : profile.emails[0].value,
+                lastname: profile.name && profile.name.familyName ? profile.name.familyName : '',
+                password: finalPassword,
+                googleId: profile.id
+              }, (err, user) => {
+                if (err) {
+                  console.log(err)
+                  // return next(err)
+                } else {
+                  sendEmail('welcome', user._id.toString(), user.emailaddress, user.firstname, user.lastname, user.country, null)
+                  console.log(user)
+                  done(null, user)
+                }
               })
             }
           })
@@ -132,7 +145,7 @@ app.get("/auth/google/", passport.authenticate('google', {
 app.get('/auth/google/callback/',
   passport.authenticate('google', { failureRedirect: '/api/reqlogin/' }),
   (req, res) => {
-      res.redirect('/')
+    return res.redirect('/')
   }
 )
 
@@ -345,6 +358,28 @@ app.route('/api/reqlogin/')
   })
 })
 
+app.post('/api/newtask/', (req, res, next) => {
+  const body = req.body
+
+  const request = new Request()
+  request.user = req.session.passport.user
+  request.taskTypeSelect = body.taskTypeSelect
+  request.title = body.title
+  request.description = body.description
+  request.expiry = body.expiry
+  request.choiceQuestion = body.choiceQuestion
+  request.choiceOptions = body.choiceOptions.split(',')
+  request.decisionTaskQuestion = body.decisionTaskQuestion
+  request.sentenceTaskQuestion = body.sentenceTaskQuestion
+  request.masterWorkers = body.masterWorkers
+  request.reward = body.reward
+  request.workerNumbers = body.workerNumbers
+  request.created = Date.now()
+  request.save()
+
+  return res.status(201).json(request)
+})
+
 app.route('/api/workers/')
 .get((req, res) => {
   Worker.find((err, workersList)=> {
@@ -529,10 +564,11 @@ app.get('/api/requestors/', (req, res) => {
     if (!requestList.length) {
       requestList = populateRequestors(8)
     }
-    const user = req.session.passport.user
-    let requestsToSend
-    if (user) requestsToSend = requestList.filter(request => request.user !== user)
-    return res.json(requestsToSend)
+    // TODO: In the future it may be beneficial to remove user's own cards
+    // const user = req.session.passport.user
+    // let requestsToSend
+    // if (user) requestsToSend = requestList.filter(request.user ? request.user._id.toString() !== user : true)
+    return res.json(requestList)
   })
 })
 

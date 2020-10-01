@@ -83,6 +83,7 @@ const HeadImg = (props) => {
           userImg.data ? `data:${userImg.dataType};base64,${userImg.data}` : faker.image.cats()
         }
         fluid
+        className="mt-5"
       />
       <Row className="justify-content-end">
         <Col xs={{ span: 3}} style={{textAlign: 'right'}}>

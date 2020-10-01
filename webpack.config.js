@@ -6,7 +6,8 @@ module.exports = (prod) => {
     entry: './src/index.js',
     output: {
       filename: 'bundle.js',
-      path: path.join(__dirname, 'public')
+      path: path.join(__dirname, 'public'),
+      publicPath: '/'
     },
     module: {
       rules: [
@@ -44,6 +45,7 @@ module.exports = (prod) => {
     },
     mode: prod ? 'production' : 'development',
     devServer: {
+      historyApiFallback: true,
       contentBase: path.join(__dirname, 'public'),
       proxy: {
         "/api": {

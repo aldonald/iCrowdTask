@@ -30,8 +30,8 @@ const Header = (props) => {
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
           <Nav.Link href="/howitworks">How it works</Nav.Link>
-          <Nav.Link href="/requesters">Requesters</Nav.Link>
-          <Nav.Link href="/workers">Workers</Nav.Link>
+          <Nav.Link href="/requesters">Current Work</Nav.Link>
+          <Nav.Link href="/newtask">Request a New Task</Nav.Link>
           <Nav.Link href="/pricing">Pricing</Nav.Link>
           <Nav.Link href="/about">About</Nav.Link>
         </Nav>

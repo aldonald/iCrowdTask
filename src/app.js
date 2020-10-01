@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
   Route,
-  HashRouter
+  BrowserRouter
 } from 'react-router-dom'
 import Header from './header'
 import TaskList from './tasklist'
 import Home from './home'
+import NewTask from './newtask'
 // import { useHistory } from "react-router-dom"
 
 
@@ -71,13 +72,14 @@ const App = () => {
   return (
     <>
       {loggedin &&
-        (<HashRouter>
+        (<BrowserRouter>
           <Header loggedin={loggedin} logout={logout} user={user} />
           <div className="content">
             <Route exact path="/" component={Home} onEnter={requireAuth} />
             <Route path="/home" component={TaskList} onEnter={requireAuth} />
+            <Route path="/newtask" component={NewTask} onEnter={requireAuth} />
           </div>
-        </HashRouter>)
+        </BrowserRouter>)
       }
     </>
   )
