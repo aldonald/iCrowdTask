@@ -41,9 +41,8 @@ const Home = (props) => {
     <>
       <HeadImg />
       <h2 className="mt-3">Featured Requestors</h2>
-      <Container>
-        <div className="container-fluid content-row mt-5">
-          <div className="row">
+      <Container classNmae="mt-5">
+        <Row>
             {requestorList.map((requestor, i) => (
               <Requestor
                 key={`requestor-${i}`}
@@ -51,7 +50,7 @@ const Home = (props) => {
               />)
             )}
           </div>
-        </div>
+        </Row>
       </Container>
       <Footer />
     </>
