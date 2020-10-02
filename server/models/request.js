@@ -5,8 +5,7 @@ const RequestSchema = new mongoose.Schema(
   {
     user:{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      unique: false
+      ref: 'User'
     },
     title: String,
     description: String,

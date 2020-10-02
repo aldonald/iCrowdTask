@@ -33,24 +33,10 @@ const NewTask = (props) => {
 
   const submitForm = (ev) => {
     ev.preventDefault()
-    console.log(`Task type = ${ev.target.taskTypeSelect.value}`)
-    console.log(`Title = ${ev.target.taskTitle.value}`)
-    console.log(`Description = ${ev.target.taskDescription.value}`)
-    console.log(`Expiry Date = ${ev.target.taskExpiry.value}`)
-
-    console.log(`Choice Task Question = ${choiceText}`)
     const listOfOptions = []
     for (var i = 0; i < choiceOptions; i++) {
       listOfOptions.push(dropDownChoice[`choiceTask-${i}`])
     }
-    console.log(listOfOptions)
-    console.log(`Decision Task Question = ${decisionText}`)
-    console.log(`Sentence Task Question = ${sentenceText}`)
-
-    console.log(`Master Workers = ${ev.target.masterWorkers.value}`)
-    console.log(`Reward = ${ev.target.reward.value}`)
-    console.log(`Worker Numbers = ${ev.target.workerNumbers.value}`)
-
 
     const formData = new FormData()
 
@@ -73,7 +59,6 @@ const NewTask = (props) => {
     })
     .then(response => response.json())
     .then(data => {
-      console.log('Success:', data)
       history.push("/")
     })
     .catch((error) => {

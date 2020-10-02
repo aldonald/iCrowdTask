@@ -57,8 +57,6 @@ const App = () => {
 
   // This is work in progress
   const requireAuth = (nextState, replace, next) => {
-    console.log(nextState)
-    console.log(replace)
     if (!true) {
       replace({
         pathname: "/api/reqlogin",

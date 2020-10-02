@@ -41,7 +41,7 @@ const Home = (props) => {
     <>
       <HeadImg />
       <h2 className="mt-3">Featured Requestors</h2>
-      <Container classNmae="mt-5">
+      <Container className="mt-5">
         <Row>
             {requestorList.map((requestor, i) => (
               <Requestor

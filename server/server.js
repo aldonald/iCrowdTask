@@ -108,7 +108,6 @@ passport.use(
                   // return next(err)
                 } else {
                   sendEmail('welcome', user._id.toString(), user.emailaddress, user.firstname, user.lastname, user.country, null)
-                  console.log(user)
                   done(null, user)
                 }
               })
@@ -352,21 +351,28 @@ app.route('/api/reqlogin/')
         } else {
           req.session.passport = {user: user.id}
         }
-        return res.redirect('/home')
+        return res.redirect('/')
       }
-    })
+    }).then(res.redirect('/'))
   })
 })
 
 app.post('/api/newtask/', (req, res, next) => {
   const body = req.body
 
+  expiry = new Date(body.expiry)
+
+  if (!(expiry instanceof Date && !isNaN(expiry))) {
+    expiry = new Date()
+    expiry = expiry + 100
+  }
+
   const request = new Request()
   request.user = req.session.passport.user
   request.taskTypeSelect = body.taskTypeSelect
   request.title = body.title
   request.description = body.description
-  request.expiry = body.expiry
+  request.expiry = expiry
   request.choiceQuestion = body.choiceQuestion
   request.choiceOptions = body.choiceOptions.split(',')
   request.decisionTaskQuestion = body.decisionTaskQuestion
