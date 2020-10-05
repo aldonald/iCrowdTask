@@ -31,7 +31,7 @@ const Home = (props) => {
     fetch(url).then(response =>
       response.json()
     ).then(response => {
-      setRequestorList(response)
+      setRequestorList(response.slice(0, 8))
     }).finally(() => setLoading(false))
   }
 
@@ -40,7 +40,7 @@ const Home = (props) => {
   return (
     <>
       <HeadImg />
-      <h2 className="mt-3">Featured Requestors</h2>
+      <h2 className="mt-5">Featured Requestors</h2>
       <Container className="mt-5">
         <Row>
             {requestorList.map((requestor, i) => (

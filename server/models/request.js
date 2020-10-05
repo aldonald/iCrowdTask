@@ -13,13 +13,14 @@ const RequestSchema = new mongoose.Schema(
     choiceOptions: [String],
     decisionTaskQuestion: String,
     sentenceTaskQuestion: String,
+    imageProcessingQuestion: String,
     masterWorkers: String,
     reward: String,
     workerNumbers: Number,
     name: String,
     logo: {
-      data: Buffer,
-      contentType: String
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserImage'
     },
     expiry: Date,
     created: Date

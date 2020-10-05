@@ -18,6 +18,8 @@ const NewTask = (props) => {
   const [choiceOptions, setChoiceOptions] = useState(0)
   const [decisionText, setDecisionText] = useState('')
   const [sentenceText, setSentenceText] = useState('')
+  const [imageProcessingText, setImageProcessingText] = useState('')
+  const [processingFile, setProcessingFile] = useState({})
 
   const history = useHistory()
 
@@ -25,11 +27,38 @@ const NewTask = (props) => {
     setType(ev.target.value)
   }
 
+  const handleSetProcessingFile = file => {
+    setProcessingFile(file)
+  }
+
   const addTextToChoice = (value) => setChoiceText(value)
   const addTextToDecision = (value) => setDecisionText(value)
   const addTextToSentence = (value) => setSentenceText(value)
+  const addTextToImageProcessing = (value) => setImageProcessingText(value)
   const setOptions = (value) => setChoiceOptions(value)
   const changeDropDownChoices = (dict) => setDropDownChoice(dict)
+
+  const arrayBufferToBase64 = (buffer) => {
+    var binary = ''
+    var bytes = [].slice.call(new Uint8Array(buffer))
+    bytes.forEach((b) => binary += String.fromCharCode(b))
+    return window.btoa(binary)
+  }
+
+  const submitProcessingImage = (requestId) => {
+    const formData = new FormData()
+    formData.append('image', processingFile)
+    formData.append('request', requestId)
+    fetch('/api/imageprocessingimage/', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+    .then(_ => history.push("/"))
+    .catch((error) => {
+      console.error('Error:', error)
+    })
+  }
 
   const submitForm = (ev) => {
     ev.preventDefault()
@@ -48,6 +77,7 @@ const NewTask = (props) => {
     formData.append('choiceOptions', listOfOptions)
     formData.append('decisionTaskQuestion', decisionText)
     formData.append('sentenceTaskQuestion', sentenceText)
+    formData.append('imageProcessingQuestion', imageProcessingText)
     formData.append('masterWorkers', ev.target.masterWorkers.value)
     formData.append('reward', ev.target.reward.value)
     formData.append('workerNumbers', ev.target.workerNumbers.value)
@@ -58,7 +88,10 @@ const NewTask = (props) => {
       body: formData
     })
     .then(response => response.json())
-    .then(data => {
+    .then(request => {
+      if (type === 'imageProcessingTask') {
+        submitProcessingImage(request._id)
+      }
       history.push("/")
     })
     .catch((error) => {
@@ -69,7 +102,8 @@ const NewTask = (props) => {
   const typeradios = [
     {name: 'Choice Task', value: 'choiceTask'},
     {name: 'Decision-Making Task', value: 'decisionTask'},
-    {name: 'Sentence-Level Task', value: 'sentenceTask'}
+    {name: 'Sentence-Level Task', value: 'sentenceTask'},
+    {name: 'Image Processing Task', value: 'imageProcessingTask'}
   ]
 
   const describeTaskFields = [
@@ -123,8 +157,10 @@ const NewTask = (props) => {
             addTextToChoice={addTextToChoice}
             addTextToDecision={addTextToDecision}
             addTextToSentence={addTextToSentence}
+            addTextToImageProcessing={addTextToImageProcessing}
             changeDropDownChoices={changeDropDownChoices}
             setOptions={setOptions}
+            setProcessingFile={handleSetProcessingFile}
           />
           <Alert variant="secondary" className="mt-5">
             <p className="mt-0 mb-0" style={{fontSize: '130%', fontWeight: 'heavy'}}><strong>Worker Requirement</strong></p>

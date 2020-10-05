@@ -54,3 +54,8 @@ form {
 {
     content:url(../images/btn_google_signin_dark.png);
 }
+
+.modal-90w {
+  width: 90%!important;
+  max-width: none!important;
+}

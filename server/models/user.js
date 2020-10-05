@@ -42,7 +42,13 @@ const UserSchema = new mongoose.Schema(
     zip: String,
     mobile: String,
     passwordResetToken: String,
-    passwordTokenCreated: Date
+    passwordTokenCreated: Date,
+    selectedTasks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Request'
+      }
+    ]
   }
 )
 

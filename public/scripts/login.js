@@ -34,13 +34,13 @@ loginForm.addEventListener('submit', ev => {
             email: email,
             iconURL: window.location.href
           })
+          navigator.credentials.store(cred).then(function() {
+             alert('Login successful.')
+          })
+        } else {
+          alert('Login successful.')
         }
-
-        navigator.credentials.store(cred).then(function() {
-           alert('Login successful.')
-        })
-
-        document.getElementById("login-body").innerHTML = this.responseText
+        window.location.href = `${window.location.origin}/`
       } else {
         alert('Sign in credentials were not correct.')
       }

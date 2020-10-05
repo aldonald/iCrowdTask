@@ -7,6 +7,7 @@ import Header from './header'
 import TaskList from './tasklist'
 import Home from './home'
 import NewTask from './newtask'
+import MyWork from './mywork'
 // import { useHistory } from "react-router-dom"
 
 
@@ -57,14 +58,9 @@ const App = () => {
 
   // This is work in progress
   const requireAuth = (nextState, replace, next) => {
-    if (!true) {
-      replace({
-        pathname: "/api/reqlogin",
-        state: {nextPathname: nextState.location.pathname}
-      })
-      // history.push("/login")
+    if (!user) {
+      fetchUser()
     }
-    next()
   }
 
   return (
@@ -76,6 +72,7 @@ const App = () => {
             <Route exact path="/" component={Home} onEnter={requireAuth} />
             <Route path="/home" component={TaskList} onEnter={requireAuth} />
             <Route path="/newtask" component={NewTask} onEnter={requireAuth} />
+            <Route path="/mywork" component={MyWork} onEnter={requireAuth} />
           </div>
         </BrowserRouter>)
       }

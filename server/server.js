@@ -9,6 +9,8 @@ const User = require('./models/user')
 const Worker = require('./models/worker')
 const UserImage = require('./models/userImage')
 const Request = require('./models/request')
+const ImageProcessImg = require('./models/imageProcessingImg')
+const Response = require('./models/response')
 const sendEmail = require('../public/scripts/email')
 const bcrypt = require('bcrypt')
 const passport = require('passport')
@@ -325,35 +327,29 @@ app.get('/api/reqtask/', (req, res, next) => {
 app.route('/api/reqlogin/')
 .get((req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'reqlogin.html')))
 .post((req, res, next) => {
-  let email = ''
-  let password = ''
+  let email = req.body.email
+  let password = req.body.password
 
-  let form = new multiparty.Form()
-  form.parse(req, function(err, fields, files) {
-    email = fields.email[0]
-    password = fields.password[0]
+  // Authenticate email for login
+  User.authenticate(email, password, (error, user) => {
 
-    // Authenticate email for login
-    User.authenticate(email, password, (error, user) => {
-
-      if (error) {
-        var err = new Error('Wrong email or password.')
-        err.status = 401
-        return next(err)
-      }
-      if (!user) {
-        var err = new Error('User cannot be found.')
-        err.status = 401
-        return next(err)
+    if (error) {
+      var err = new Error('Wrong email or password.')
+      err.status = 401
+      return next(err)
+    }
+    if (!user) {
+      var err = new Error('User cannot be found.')
+      err.status = 401
+      return next(err)
+    } else {
+      if (req.session.passport) {
+        req.session.passport.user = user.id
       } else {
-        if (req.session.passport) {
-          req.session.passport.user = user.id
-        } else {
-          req.session.passport = {user: user.id}
-        }
-        return res.redirect('/')
+        req.session.passport = {user: user.id}
       }
-    }).then(res.redirect('/'))
+      return res.redirect('/')
+    }
   })
 })
 
@@ -367,23 +363,37 @@ app.post('/api/newtask/', (req, res, next) => {
     expiry = expiry + 100
   }
 
-  const request = new Request()
-  request.user = req.session.passport.user
-  request.taskTypeSelect = body.taskTypeSelect
-  request.title = body.title
-  request.description = body.description
-  request.expiry = expiry
-  request.choiceQuestion = body.choiceQuestion
-  request.choiceOptions = body.choiceOptions.split(',')
-  request.decisionTaskQuestion = body.decisionTaskQuestion
-  request.sentenceTaskQuestion = body.sentenceTaskQuestion
-  request.masterWorkers = body.masterWorkers
-  request.reward = body.reward
-  request.workerNumbers = body.workerNumbers
-  request.created = Date.now()
-  request.save()
+  const getLogo = () => {
+    UserImage.find({user: req.session.passport.user})
+    .exec((error, images) => {
+      if (error || !images.length > 0) {
+        return undefined
+      }
+      images.sort((a, b) => b.created - a.created)
+      const logo = images[0]
+      console.log(logo)
+      const request = new Request()
+      request.user = req.session.passport.user
+      request.taskTypeSelect = body.taskTypeSelect
+      request.title = body.title
+      request.description = body.description
+      request.expiry = expiry
+      request.choiceQuestion = body.choiceQuestion
+      request.choiceOptions = body.choiceOptions.split(',')
+      request.decisionTaskQuestion = body.decisionTaskQuestion
+      request.sentenceTaskQuestion = body.sentenceTaskQuestion
+      request.imageProcessingQuestion = body.imageProcessingQuestion
+      request.masterWorkers = body.masterWorkers
+      request.reward = body.reward
+      request.workerNumbers = body.workerNumbers
+      request.created = Date.now()
+      request.logo = logo
+      request.save()
 
-  return res.status(201).json(request)
+      return res.status(201).json(request)
+    })
+  }
+  getLogo()
 })
 
 app.route('/api/workers/')
@@ -536,12 +546,11 @@ app.route('/api/userimage/')
 .get((req, res) => {
   UserImage.find({user: req.session.passport.user})
   .exec((error, images) => {
-    if (error || !images) {
+    if (error || !images.length > 0) {
       if (!error) {
         var err = new Error('No image found.')
-        err.status = 400
       }
-      return res.json(error)
+      return res.status(400).json(error)
     }
     images.sort((a, b) => b.created - a.created)
     return res.json(images[0])
@@ -563,6 +572,74 @@ app.route('/api/userimage/')
   return res.status(201).json(image)
 })
 
+app.get('/api/userimage/:id', (req, res) => {
+  UserImage.findOne({_id: req.params.id})
+  .exec((error, image) => {
+    if (error || !image) {
+      if (!error) {
+        var err = new Error('No image found.')
+      }
+      return res.status(400).json(error)
+    }
+    return res.json(image)
+  })
+})
+
+app.get('/api/imageprocessingimage/:reqId', (req, res) => {
+  ImageProcessImg.find({request: req.params.reqId})
+  .exec((error, images) => {
+    if (error || !images.length > 0) {
+      if (!error) {
+        var err = new Error('No image found.')
+      }
+      return res.status(400).json(error)
+    }
+    images.sort((a, b) => b.created - a.created)
+    return res.json(images[0])
+  })
+})
+
+app.post('/api/imageprocessingimage/', (req, res) => {
+  if (req.files === null) return res.status(400).json({msg: "No file uploaded"})
+  const file = req.files.image
+  const created = Date.now()
+  const requestId = req.body.request
+
+  const image = new ImageProcessImg()
+  image.name = file.name
+  image.img.data = file.data
+  image.img.contentType = file.mimetype
+  image.request = requestId
+  image.created = created
+  image.save()
+
+  return res.status(201).json(image)
+})
+
+app.post('/api/addtouser/', (req, res) => {
+  if (req.body.request === null) return res.status(400).json({msg: "No request id included"})
+  User.findOne({_id: req.session.passport.user}, (err, user) => {
+    if (err) return res.send(err)
+    else if (!user) return res.status(400).send("No user of that id exists.")
+    const request = req.body.request
+    user.selectedTasks.push(request)
+    user.save()
+    return res.status(200).json('OK')
+  })
+})
+
+app.post('/api/removefromuser/', (req, res) => {
+  if (req.body.request === null) return res.status(400).json({msg: "No request id included"})
+  User.findOne({_id: req.session.passport.user}, (err, user) => {
+    if (err) return res.send(err)
+    else if (!user) return res.status(400).send("No user of that id exists.")
+    const request = req.body.request
+    user.selectedTasks.pull(request)
+    user.save()
+    return res.status(200).json('OK')
+  })
+})
+
 app.get('/api/requestors/', (req, res) => {
   Request.find({}).exec((err, requestList) => {
     if (err) return res.status(500).send(err)
@@ -570,11 +647,50 @@ app.get('/api/requestors/', (req, res) => {
     if (!requestList.length) {
       requestList = populateRequestors(8)
     }
-    // TODO: In the future it may be beneficial to remove user's own cards
-    // const user = req.session.passport.user
-    // let requestsToSend
-    // if (user) requestsToSend = requestList.filter(request.user ? request.user._id.toString() !== user : true)
-    return res.json(requestList)
+
+    const user = req.session.passport.user
+    let requestsToSend
+    if (user) {
+      requestsToSend = requestList.filter((request) => {
+        return request.user._id !== user
+      })
+    } else {
+      requestsToSend = requestList
+    }
+    return res.json(requestsToSend)
+  })
+})
+
+app.get('/api/requestors/foruser', (req, res) => {
+  const user = req.session.passport.user
+
+  User.findById(req.session.passport.user).exec((err, user) => {
+    if (err || !user) return res.status(400).json("User not found.")
+    const ids = user.selectedTasks
+    Request.find().where('_id').in(ids).exec((err, requests) => {
+      if (err || !user || !requests.length > 0) return res.status(400).json([])
+      return res.json(requests)
+    })
+  })
+})
+
+app.post('/api/taskresponse/', (req, res) => {
+  if (req.body.response === null) return res.status(400).json({msg: "No request id included"})
+
+  User.findById(req.session.passport.user).exec((error, user) => {
+    if (error || !user) return res.status(400).json({msg: "No user included"})
+    const response = new Response()
+    response.worker = user._id
+    response.request = req.body.request
+    response.type = req.body.questionType
+    response.response = req.body.response
+    response.save()
+
+    user.selectedTasks.pull(req.body.request)
+    user.save()
+
+    return res.status(201).json(response)
+
   })
 })
 

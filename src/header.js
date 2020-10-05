@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import NavDropdown from 'react-bootstrap/NavDropdown'
+import ChangeLogo from './photoupload'
 
 const Header = (props) => {
   const [username, setUsername] = useState('Account')
@@ -18,6 +19,7 @@ const Header = (props) => {
   const LoggedInComponent = (
     <NavDropdown title={username} id="basic-nav-dropdown">
       <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
+      <ChangeLogo />
       <NavDropdown.Divider />
       <NavDropdown.Item href="/api/reqlogin" onClick={props.logout} >Logout</NavDropdown.Item>
     </NavDropdown>
@@ -30,7 +32,7 @@ const Header = (props) => {
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
           <Nav.Link href="/howitworks">How it works</Nav.Link>
-          <Nav.Link href="/requesters">Current Work</Nav.Link>
+          <Nav.Link href="/mywork">Current Work</Nav.Link>
           <Nav.Link href="/newtask">Request a New Task</Nav.Link>
           <Nav.Link href="/pricing">Pricing</Nav.Link>
           <Nav.Link href="/about">About</Nav.Link>

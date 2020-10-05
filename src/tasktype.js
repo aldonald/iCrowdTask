@@ -13,6 +13,8 @@ const TaskType = (props) => {
   const [sentenceText, setSentenceText] = useState('')
   const [decisionText, setDecisionText] = useState('')
   const [choiceText, setChoiceText] = useState('')
+  const [imageProcessingText, setImageProcessingText] = useState('')
+  const [fileName, setFileName] = useState('Add image for worker')
 
   const handleSetRows = (ev) => {
     setNoRows(ev)
@@ -39,6 +41,16 @@ const TaskType = (props) => {
   const addTextToChoice = (ev) => {
     setChoiceText(ev.target.value)
     props.addTextToChoice(ev.target.value)
+  }
+
+  const addTextToImageProcessing = (ev) => {
+    setImageProcessingText(ev.target.value)
+    props.addTextToImageProcessing(ev.target.value)
+  }
+
+  const onProcFileChange = e => {
+    props.setProcessingFile(e.target.files[0])
+    setFileName(e.target.files[0].name)
   }
 
 
@@ -128,6 +140,29 @@ const TaskType = (props) => {
         </Form.Group>
       </>
     )
+  } else if (props.type === 'imageProcessingTask') {
+    taskRender = (
+      <>
+        <Form.Group controlId="imageProcessingTask">
+          <Form.Label>Question</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows="3"
+            placeholder="Type in the items you wish the user to tag."
+            onChange={addTextToImageProcessing}
+            name="imageProcessingTask"
+            value={imageProcessingText || ''}
+          />
+          <Form.File
+            id="imageProcFile"
+            label={fileName}
+            custom
+            onChange={onProcFileChange}
+            className="mt-3"
+          />
+        </Form.Group>
+      </>
+    )
   }
   return (
     <>
@@ -145,7 +180,8 @@ TaskType.propTypes = {
   addTextToDecision: PropTypes.func,
   addTextToSentence: PropTypes.func,
   changeDropDownChoices: PropTypes.func,
-  setOptions: PropTypes.func
+  setOptions: PropTypes.func,
+  injectProcessingImage: PropTypes.func
 }
 
 export default TaskType
