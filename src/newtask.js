@@ -9,6 +9,7 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import Alert from 'react-bootstrap/Alert'
 import TaskType from './tasktype'
+import { Date } from 'mireco'
 import { useHistory } from "react-router-dom"
 
 const NewTask = (props) => {
@@ -20,6 +21,7 @@ const NewTask = (props) => {
   const [sentenceText, setSentenceText] = useState('')
   const [imageProcessingText, setImageProcessingText] = useState('')
   const [processingFile, setProcessingFile] = useState({})
+  const [date, setDate] = useState(null)
 
   const history = useHistory()
 
@@ -68,11 +70,10 @@ const NewTask = (props) => {
     }
 
     const formData = new FormData()
-
     formData.append('taskTypeSelect', ev.target.taskTypeSelect.value)
     formData.append('title', ev.target.taskTitle.value)
     formData.append('description', ev.target.taskDescription.value)
-    formData.append('expiry', ev.target.taskExpiry.value)
+    formData.append('expiry', date)
     formData.append('choiceQuestion', choiceText)
     formData.append('choiceOptions', listOfOptions)
     formData.append('decisionTaskQuestion', decisionText)
@@ -108,9 +109,12 @@ const NewTask = (props) => {
 
   const describeTaskFields = [
     {name: 'Title', value: 'taskTitle'},
-    {name: 'Description', value: 'taskDescription'},
-    {name: 'Expiry Date', value: 'taskExpiry'}
+    {name: 'Description', value: 'taskDescription'}
   ]
+
+  const changeDate = (date) => {
+    setDate(date)
+  }
 
   return (
     <>
@@ -149,6 +153,12 @@ const NewTask = (props) => {
               </Col>
             </Form.Group>
           ))}
+          <Form.Group as={Row}>
+            <Form.Label column sm="3">Expiry Date</Form.Label>
+            <Col sm="9">
+              <Date block onChange={changeDate} value={date} className="calendar-MIRECO form-control"/>
+            </Col>
+          </Form.Group>
           <Alert variant="secondary" className="mt-5">
             <p className="mt-0 mb-0" style={{fontSize: '130%', fontWeight: 'heavy'}}><strong>Setting up your Task</strong></p>
           </Alert>

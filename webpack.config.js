@@ -9,6 +9,14 @@ module.exports = (prod) => {
       path: path.join(__dirname, 'public'),
       publicPath: '/'
     },
+    node: {
+      // see http://webpack.github.io/docs/configuration.html#node
+      // and https://webpack.js.org/configuration/node/
+      fs: 'empty',
+      module: 'empty',
+      net: 'empty',
+      tls: 'empty',
+    },
     module: {
       rules: [
         {

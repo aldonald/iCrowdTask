@@ -20,6 +20,7 @@ const Requestor = (props) => {
   const [processingImg, setProcessingImg] = useState({})
   const [logoImg, setLogoImg] = useState({})
   const [action, setAction] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const handleShowModal = () => {
     setShowModal(true)
@@ -48,7 +49,6 @@ const Requestor = (props) => {
       type = 'imageProcessingQuestion'
     }
     const formData = new FormData()
-    console.log(`Type is ${type}`)
     formData.append('questionType', type)
     formData.append('response', response)
     formData.append('request', props.requestor._id)
@@ -84,7 +84,6 @@ const Requestor = (props) => {
     }
     if (props.requestor.logo) {
       const url = `/api/userimage/${props.requestor.logo}`
-      console.log(url)
       fetch(url, {credentials: 'include'})
       .then(response => {
         return response.json()
@@ -95,7 +94,10 @@ const Requestor = (props) => {
           const logoData = arrayBufferToBase64(response.img.data.data)
           setLogoImg({dataType: logoDataType, data: logoData})
         }
+        setLoading(false)
       })
+    } else {
+      setLoading(false)
     }
   }
 
@@ -155,6 +157,10 @@ const Requestor = (props) => {
     .catch((error) => {
       console.error('Error:', error)
     })
+  }
+
+  const toggleAction = () => {
+    setAction(!action)
   }
 
   return (
@@ -217,8 +223,8 @@ const Requestor = (props) => {
           )}
         {props.inUserList
           ? (
-            <Button variant="outline-success" type="button" onClick={() => setAction(true)}>
-              Action
+            <Button variant="outline-success" type="button" onClick={() => toggleAction()}>
+              {action ? 'Cancel' : 'Action'}
             </Button>
           )
           : (<Button variant="primary" type="submit" onClick={addToUser}>

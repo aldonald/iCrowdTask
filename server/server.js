@@ -23,6 +23,7 @@ const multer = require('multer')
 const fileUpload = require('express-fileupload')
 const fs = require('fs')
 const populateRequestors = require('./populateRequestors')
+const { IamTokenManager } = require('ibm-watson/auth')
 
 require('dotenv').config()
 
@@ -219,21 +220,42 @@ app.route('/api/reqsignup/')
       }
     })
   } else {
-    const original_values = {
-      country: country,
-      firstname : firstname,
-      lastname: lastname,
-      emailaddress: email,
-      password: password,
-      address: joinedAddress,
-      city: city,
-      state: state,
-      zip: zip,
-      mobile: mobile
-    }
-
-    res.sendFile(path.join(__dirname, '..', 'public', '400.html'))
+    res.status(400).json(err)
   }
+})
+
+app.post('/api/updateuser', (req, res) => {
+  User.findById(req.session.passport.user).exec((err, user) => {
+    if (req.body.firstname) user.firstname = req.body.firstname
+    if (req.body.lastname) user.lastname = req.body.lastname
+    if (req.body.inputEmail) user.emailaddress = req.body.inputEmail
+    if (req.body.inputCity) user.city = req.body.inputCity
+    if (req.body.inputState) user.state = req.body.inputState
+    if (req.body.inputZip) user.zip = req.body.inputZip
+    if (req.body.inputMobile) user.mobile = req.body.inputMobile
+
+    const addressFirst = req.body.inputAddress
+    const addressSec = req.body.inputAddress2
+    const joinedAddress = addressSec ? addressFirst + ', ' + addressSec : addressFirst
+    if (addressFirst || addressSec) user.address = joinedAddress
+
+    if (req.body.inputPassword && req.body.confirmPassword) {
+      if (req.body.inputPassword !== req.body.confirmPassword) {
+        var err = new Error('Passwords do not match.')
+        err.status = 400
+      } else {
+        if (password.length < 8) {
+          var err = new Error('Password is too short.')
+          err.status = 400
+        } else {
+          user.password = req.body.inputPassword
+        }
+      }
+    }
+    user.save()
+    if (err) res.status(400).json(err)
+    return res.json('OK')
+  })
 })
 
 app.route('/api/forgotpassword/')
@@ -332,7 +354,6 @@ app.route('/api/reqlogin/')
 
   // Authenticate email for login
   User.authenticate(email, password, (error, user) => {
-
     if (error) {
       var err = new Error('Wrong email or password.')
       err.status = 401
@@ -355,7 +376,6 @@ app.route('/api/reqlogin/')
 
 app.post('/api/newtask/', (req, res, next) => {
   const body = req.body
-
   expiry = new Date(body.expiry)
 
   if (!(expiry instanceof Date && !isNaN(expiry))) {
@@ -366,12 +386,14 @@ app.post('/api/newtask/', (req, res, next) => {
   const getLogo = () => {
     UserImage.find({user: req.session.passport.user})
     .exec((error, images) => {
-      if (error || !images.length > 0) {
-        return undefined
+      if (error) return res.status(400).json(error)
+      let logo
+      if (images.length > 0) {
+        images.sort((a, b) => b.created - a.created)
+        logo = images[0]
+      } else {
+        logo = undefined
       }
-      images.sort((a, b) => b.created - a.created)
-      const logo = images[0]
-      console.log(logo)
       const request = new Request()
       request.user = req.session.passport.user
       request.taskTypeSelect = body.taskTypeSelect
@@ -494,12 +516,20 @@ app.route('/api/workers/:id')
   })
 })
 
+app.get('/api/getuser', (req, res) => {
+  User.findOne({_id: req.session.passport.user}).exec((err, user) => {
+    if (err) return res.send(err)
+    else if (!user) return res.status(400).send("No user of that id exists.")
+    else return res.json(user)
+  })
+})
+
 app.route('/api/users/:id')
 .get((req, res) => {
   User.findOne({_id: req.params.id}, (err, user) => {
     if (err) return res.send(err)
-    else if (user) return res.send(user)
-    else return res.status(400).send("No user of that id exists.")
+    else if (!user) return res.status(400).send("No user of that id exists.")
+    else return res.json(user)
   })
 })
 .patch((req, res, next) => {
@@ -674,6 +704,23 @@ app.get('/api/requestors/foruser', (req, res) => {
   })
 })
 
+app.get('/api/requests/foruser', (req, res) => {
+  const user = req.session.passport.user
+  Request.find({user: user}).exec((err, requests) => {
+    if (err) res.status(400).json(err)
+    return res.json(requests)
+  })
+})
+
+app.get('/api/responses/:request', (req, res) => {
+  Request.findById(req.params.request).exec((error, request) => {
+    if (error || !request) return res.status(400).json({msg: "No request found"})
+    Response.find({request: request}).exec((err, responses) => {
+      return res.json(responses)
+    })
+  })
+})
+
 app.post('/api/taskresponse/', (req, res) => {
   if (req.body.response === null) return res.status(400).json({msg: "No request id included"})
 
@@ -692,6 +739,19 @@ app.post('/api/taskresponse/', (req, res) => {
     return res.status(201).json(response)
 
   })
+})
+
+const speechAuthenticator = new IamTokenManager({
+  apikey: process.env.SPEECH_API_KEY,
+})
+
+app.get('/api/speech-token', (req, res) => {
+  return speechAuthenticator
+    .requestToken()
+    .then(({ result }) => {
+      res.json({ accessToken: result.access_token, url: process.env.SPEECH_URL });
+    })
+    .catch(console.error)
 })
 
 let port = process.env.PORT;

@@ -18,7 +18,7 @@ const Header = (props) => {
 
   const LoggedInComponent = (
     <NavDropdown title={username} id="basic-nav-dropdown">
-      <NavDropdown.Item href="/">Preferences</NavDropdown.Item>
+      <NavDropdown.Item href="/personaldetails">Personal Details</NavDropdown.Item>
       <ChangeLogo />
       <NavDropdown.Divider />
       <NavDropdown.Item href="/api/reqlogin" onClick={props.logout} >Logout</NavDropdown.Item>
@@ -31,10 +31,9 @@ const Header = (props) => {
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
-          <Nav.Link href="/howitworks">How it works</Nav.Link>
-          <Nav.Link href="/mywork">Current Work</Nav.Link>
-          <Nav.Link href="/newtask">Request a New Task</Nav.Link>
-          <Nav.Link href="/pricing">Pricing</Nav.Link>
+          <Nav.Link href="/mywork">To Do</Nav.Link>
+          <Nav.Link href="/myjobs">Allocated</Nav.Link>
+          <Nav.Link href="/newtask">Create Task</Nav.Link>
           <Nav.Link href="/about">About</Nav.Link>
         </Nav>
         {props.loggedin &&

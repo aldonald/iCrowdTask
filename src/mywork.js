@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Requestor from './requestor'
 import { useHistory } from "react-router-dom"
+import Loader from 'react-loader-spinner'
 
 const MyWork = () => {
   const [myWorkList, setMyWorkList] = useState([])
@@ -28,19 +29,24 @@ const MyWork = () => {
     }).finally(() => setLoading(false))
   }
 
-  const refresh = () => document.location.reload()
+  const refresh = () => {
+    setLoading(true)
+    return document.location.reload()
+  }
 
   let workListDisplay
   if (myWorkList.length > 0) {
-    workListDisplay = filteredList.map((workItem, i) => (
-      <Requestor
-        key={`workItem-${i}`}
-        requestor={workItem}
-        inUserList
-        refresh={refresh}
-      />
+    workListDisplay = filteredList.map((workItem, i) =>
+      (
+        <Requestor
+          key={`workItem-${i}`}
+          requestor={workItem}
+          inUserList
+          refresh={refresh}
+        />
+      )
     )
-  )} else {
+  } else {
     workListDisplay = <p>No work currently selected</p>
   }
 
@@ -52,8 +58,8 @@ const MyWork = () => {
       setAllCards(response)
       setFilteredAllCards(response)
     }).finally(() => {
-      setLoading(false)
       setShowFullList(true)
+      setLoading(false)
     })
   }
 
@@ -73,9 +79,17 @@ const MyWork = () => {
 
   return (
     <>
+      <Loader
+        visible={loading}
+        type="Oval"
+        color="#00BFFF"
+        height={200}
+        width={200}
+        style={{textAlign: 'center', verticalAlign: 'middle', margin: '0', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: '100'}}
+      />
       <Container className="mt-5">
         <Row className="mb-5" style={{alignItems: 'flex-end'}}>
-          <h2 className="mt-5 mb-0">Work I have selected</h2>
+          <h2 className="mt-5 mb-0">Your to do list</h2>
           <MyFilter returnResults={filterJobs} workList={myWorkList} />
         </Row>
         <Button variant="outline-info" size="lg" block onClick={addTasks} className="mb-5">

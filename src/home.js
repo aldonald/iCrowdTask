@@ -13,6 +13,8 @@ import faker from  'faker'
 import HeadImg from './headImg'
 import Requestor from './requestor'
 import Footer from './footer'
+import Loader from 'react-loader-spinner'
+
 
 const Home = (props) => {
   const [requestorList, setRequestorList] = useState([])
@@ -39,19 +41,31 @@ const Home = (props) => {
 
   return (
     <>
-      <HeadImg />
-      <h2 className="mt-5">Featured Requestors</h2>
-      <Container className="mt-5">
-        <Row>
-            {requestorList.map((requestor, i) => (
-              <Requestor
-                key={`requestor-${i}`}
-                requestor={requestor}
-              />)
-            )}
-        </Row>
-      </Container>
-      <Footer />
+      <Loader
+        visible={loading}
+        type="Oval"
+        color="#00BFFF"
+        height={200}
+        width={200}
+        style={{textAlign: 'center', verticalAlign: 'middle', margin: '0', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: '100'}}
+      />
+      {!loading &&
+        (<>
+          <HeadImg />
+          <h2 className="mt-5">Featured Requestors</h2>
+          <Container className="mt-5">
+            <Row>
+                {requestorList.map((requestor, i) => (
+                  <Requestor
+                    key={`requestor-${i}`}
+                    requestor={requestor}
+                  />)
+                )}
+            </Row>
+          </Container>
+          <Footer />
+        </>)
+      }
     </>
   )
 }

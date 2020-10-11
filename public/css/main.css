@@ -1,3 +1,5 @@
+@import '/node_modules/mireco/dist/mireco-components';
+
 body, html {
   height: 100%;
   text-align: center;
@@ -58,4 +60,60 @@ form {
 .modal-90w {
   width: 90%!important;
   max-width: none!important;
+}
+
+.MIRECO-text {
+  border: none;
+}
+
+.MIRECO-date {
+  position: relative;
+}
+.MIRECO-date.block {
+  margin-bottom: standard-padding;
+}
+.MIRECO-date:focus {
+  outline: none;
+}
+.MIRECO-date:not(.block) > .MIRECO-text {
+  max-width: 8rem;
+}
+.MIRECO-date > .MIRECO-calendar {
+  position: absolute;
+  background: white;
+  padding: 10px;
+  z-index: 100;
+  left: 0;
+  top: 100%;
+}
+
+.MIRECO-date > .MIRECO-calendar button {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  transition: color .15s;
+  color: #6c757d;
+  border-color: #6c757d;
+  padding: 6px;
+  width: 35px;
+  height: 35px;
+}
+
+.MIRECO-date.right-hang > .MIRECO-calendar {
+  left: auto;
+  right: 0;
+}
+
+.carousel img {
+  height: 100%;
 }
