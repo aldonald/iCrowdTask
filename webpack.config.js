@@ -22,6 +22,7 @@ module.exports = (prod) => {
         {
           loader: 'babel-loader',
           test: /\.js$/,
+          query: {compact: false},
           exclude: /node_modules/
         },
         {
