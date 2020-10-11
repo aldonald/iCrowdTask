@@ -24,6 +24,7 @@ const fileUpload = require('express-fileupload')
 const fs = require('fs')
 const populateRequestors = require('./populateRequestors')
 const { IamTokenManager } = require('ibm-watson/auth')
+const redirectToHTTPS = require('express-http-to-https').redirectToHTTPS
 
 require('dotenv').config()
 
@@ -32,6 +33,8 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use('/', express.static(path.join(__dirname, '..', 'public')))
 app.use(fileUpload())
+// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
+app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/]))
 
 const upload = multer({
   dest: 'uploads/',
