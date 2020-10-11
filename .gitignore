@@ -3,3 +3,10 @@ secret.js
 .env
 public/bundle.js
 public/main.css
+AAACertificateServices.crt
+SectigoRSADomainValidationSecureServerCA.crt
+USERTrustRSAAAACA.crt
+server.csr
+server.key
+server.pass.key
+www_icrowdtask_works.crt
